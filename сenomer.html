@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Выгода">
+  <title>Сравнение товаров</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #f2f2f7;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 16px 12px;
+      user-select: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1c1c1e;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .product-card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+      border: 2px solid transparent;
+      transition: all 0.25s ease;
+    }
+
+    .product-card.cheaper {
+      border-color: #34c759;
+      background: rgba(52, 199, 89, 0.04);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .card-title-input {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1c1c1e;
+      border: 1px dashed #c7c7cc;
+      border-radius: 6px;
+      padding: 2px 6px;
+      background: #f9f9fb;
+      width: 100%;
+      max-width: 220px;
+      text-align: left !important;
+      height: 30px !important;
+    }
+
+    .card-title-input:focus {
+      border-style: solid;
+      border-color: #007aff !important;
+      background: #ffffff !important;
+    }
+
+    .badge-cheaper {
+      display: none;
+      background: #34c759;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .product-card.cheaper .badge-cheaper {
+      display: inline-block;
+    }
+
+    .grid-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #8e8e93;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    input {
+      width: 100%;
+      height: 42px;
+      background-color: #f2f2f7;
+      border: 1.5px solid transparent;
+      border-radius: 10px;
+      padding: 0 20px 0 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1c1c1e;
+      text-align: center;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input.primary-field {
+      background-color: #fff9e6;
+      border-color: #ffe89c;
+    }
+
+    input:focus {
+      border-color: #007aff !important;
+      background-color: #ffffff !important;
+    }
+
+    input.computed {
+      background-color: #e5f1ff !important;
+      border-color: transparent !important;
+      color: #007aff;
+    }
+
+    .unit {
+      position: absolute;
+      right: 6px;
+      font-size: 11px;
+      color: #8e8e93;
+      pointer-events: none;
+    }
+
+    .diff-banner {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1c1c1e;
+      margin-top: 14px;
+      margin-bottom: 12px;
+      display: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .btn-reset {
+      width: 100%;
+      height: 44px;
+      background-color: #e5e5ea;
+      color: #1c1c1e;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-reset:active {
+      background-color: #d1d1d6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Сравнение выгоды</h1>
+
+  <div id="productsContainer"></div>
+
+  <div class="diff-banner" id="diffBanner"></div>
+
+  <button class="btn-reset" id="resetBtn">Сбросить всё</button>
+</div>
+
+<script>
+  const PRODUCTS_COUNT = 4;
+  const productsContainer = document.getElementById('productsContainer');
+  const diffBanner = document.getElementById('diffBanner');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const products = [];
+
+  for (let i = 1; i <= PRODUCTS_COUNT; i++) {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.id = `card-${i}`;
+
+    card.innerHTML = `
+      <div class="card-header">
+        <input type="text" class="card-title-input" id="name-${i}" value="Товар ${i}" placeholder="Название бренда">
+        <span class="badge-cheaper" id="badge-${i}">Выгоднее всего</span>
+      </div>
+      <div class="grid-row">
+        <div class="field">
+          <label>Стоимость</label>
+          <div class="input-wrapper">
+            <input type="number" id="price-${i}" class="primary-field" placeholder="0" inputmode="decimal">
+            <span class="unit">₽</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Масса</label>
+          <div class="input-wrapper">
+            <input type="number" id="weight-${i}" class="primary-field" placeholder="0" inputmode="decimal">
+            <span class="unit">г</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Цена/кг</label>
+          <div class="input-wrapper">
+            <input type="number" id="unitPrice-${i}" placeholder="0" inputmode="decimal">
+            <span class="unit">₽</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    productsContainer.appendChild(card);
+    products.push(setupProductCalculator(i));
+
+    document.getElementById(`name-${i}`).addEventListener('input', () => compareProducts());
+  }
+
+  function setupProductCalculator(id) {
+    const nameInput = document.getElementById(`name-${id}`);
+    const priceInput = document.getElementById(`price-${id}`);
+    const weightInput = document.getElementById(`weight-${id}`);
+    const unitPriceInput = document.getElementById(`unitPrice-${id}`);
+    const inputs = [priceInput, weightInput, unitPriceInput];
+
+    let history = [];
+
+    inputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        const inputId = e.target.id;
+        history = history.filter(item => item !== inputId);
+        history.push(inputId);
+        calculate();
+        compareProducts();
+      });
+    });
+
+    function calculate() {
+      inputs.forEach(i => i.classList.remove('computed'));
+
+      const activeInputs = history.filter(inpId => {
+        const val = parseFloat(document.getElementById(inpId).value);
+        return !isNaN(val) && val > 0;
+      });
+
+      if (activeInputs.length < 2) return;
+
+      const lastTwo = activeInputs.slice(-2);
+      const targetId = [`price-${id}`, `weight-${id}`, `unitPrice-${id}`].find(inpId => !lastTwo.includes(inpId));
+      const targetInput = document.getElementById(targetId);
+
+      const price = parseFloat(priceInput.value);
+      const weightGrams = parseFloat(weightInput.value);
+      const unitPrice = parseFloat(unitPriceInput.value);
+
+      let result = null;
+
+      if (targetId === `unitPrice-${id}` && price && weightGrams) {
+        result = (price / weightGrams) * 1000;
+      } else if (targetId === `weight-${id}` && price && unitPrice) {
+        result = (price / unitPrice) * 1000;
+      } else if (targetId === `price-${id}` && weightGrams && unitPrice) {
+        result = (weightGrams / 1000) * unitPrice;
+      }
+
+      if (result !== null && isFinite(result)) {
+        targetInput.value = targetId === `weight-${id}` ? Math.round(result) : +result.toFixed(2);
+        targetInput.classList.add('computed');
+      }
+    }
+
+    return {
+      id,
+      getName: () => nameInput.value.trim() || `Товар ${id}`,
+      clearAll: () => {
+        inputs.forEach(input => {
+          input.value = '';
+          input.classList.remove('computed');
+        });
+        nameInput.value = `Товар ${id}`;
+        history = [];
+      },
+      getUnitPrice: () => {
+        const val = parseFloat(unitPriceInput.value);
+        return (!isNaN(val) && val > 0) ? val : null;
+      }
+    };
+  }
+
+  function compareProducts() {
+    for (let i = 1; i <= PRODUCTS_COUNT; i++) {
+      document.getElementById(`card-${i}`).classList.remove('cheaper');
+    }
+    diffBanner.style.display = 'none';
+
+    const activeProducts = products
+      .map(p => ({ id: p.id, name: p.getName(), unitPrice: p.getUnitPrice() }))
+      .filter(p => p.unitPrice !== null);
+
+    if (activeProducts.length < 2) return;
+
+    activeProducts.sort((a, b) => a.unitPrice - b.unitPrice);
+
+    const winner = activeProducts[0];
+    const runnerUp = activeProducts[1];
+
+    if (winner.unitPrice < runnerUp.unitPrice) {
+      const winnerCard = document.getElementById(`card-${winner.id}`);
+      const diffRub = (runnerUp.unitPrice - winner.unitPrice).toFixed(2);
+      const diffPercent = (((runnerUp.unitPrice - winner.unitPrice) / runnerUp.unitPrice) * 100).toFixed(1);
+
+      winnerCard.classList.add('cheaper');
+      diffBanner.style.display = 'block';
+      diffBanner.textContent = `«${winner.name}» выгоднее на ${diffRub} ₽/кг (${diffPercent}%)`;
+    }
+  }
+
+  resetBtn.addEventListener('click', () => {
+    products.forEach(p => p.clearAll());
+    compareProducts();
+  });
+</script>
+
+</body>
+</html>
