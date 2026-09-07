@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Выгода">
-  <title>Сравнение товаров</title>
+  <meta name="apple-mobile-web-app-title" content="Ценомер">
+  <title>Ценомер</title>
+
+  <!-- VK Bridge SDK -->
+  <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser/vk-bridge.min.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -208,6 +212,11 @@
 </div>
 
 <script>
+  // Инициализируем мост ВК
+  if (typeof vkBridge !== 'undefined') {
+    vkBridge.send('VKWebAppInit');
+  }
+
   const PRODUCTS_COUNT = 4;
   const productsContainer = document.getElementById('productsContainer');
   const diffBanner = document.getElementById('diffBanner');
