@@ -8,8 +8,15 @@
   <meta name="apple-mobile-web-app-title" content="Ценомер">
   <title>Ценомер</title>
 
-  <!-- VK Bridge SDK -->
+  <!-- 1. Подключаем локальный файл VK Bridge -->
   <script src="./browser.min.js"></script>
+
+  <!-- 2. Инициализация СТРОГО в head ДО загрузки страницы -->
+  <script>
+    if (typeof vkBridge !== 'undefined') {
+      vkBridge.send("VKWebAppInit", {});
+    }
+  </script>
 
   <style>
     * {
@@ -212,11 +219,6 @@
 </div>
 
 <script>
-  // Инициализируем мост ВК
-  if (typeof vkBridge !== 'undefined') {
-    vkBridge.send('VKWebAppInit');
-  }
-
   const PRODUCTS_COUNT = 4;
   const productsContainer = document.getElementById('productsContainer');
   const diffBanner = document.getElementById('diffBanner');
